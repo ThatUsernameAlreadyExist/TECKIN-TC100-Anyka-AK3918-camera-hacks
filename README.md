@@ -12,7 +12,7 @@ Supported camera model: **Teckin TC100 / Teckin Click** with Anyka AK3918 v300 C
 ## How to install
 1. Prepare an MicroSD-card with FAT32 filesystem and allocation unit size 32K (16K and smaller unit size may running system into unstable condition)
 2. Copy all data to MicroSD-card
-3. Connect the camera to your WiFI network through Teckin app (Android/IOS). See IP-address of the camera in your WiFi-router settings (required to connect via telnet).
+3. Connect the camera to your WiFI network through Teckin app (Android/IOS). See IP-address of the camera in your WiFi-router settings (required to connect via http/rtsp).
 4. Place MicroSD-card in camera 
 5. Reboot camera
    
