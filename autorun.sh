@@ -36,7 +36,7 @@ enable_hardware_watchdog()
     #
     # To disable watchdog use:
     #       echo 'V'>/dev/watchdog
-    #       echo 'V'>/dev/watchdog0 
+    #       echo 'V'>/dev/watchdog0
     # Start watchdog (notify every 2 seconds, reboot if no notification in 5 seconds)
     busybox watchdog -t 2 -T 5 /dev/watchdog
     echo "Enabling hardware watchdog" >> $LOGPATH
@@ -64,21 +64,21 @@ init_network()
     install_config $CONFIGPATH/hostname.conf
     hostname -F $CONFIGPATH/hostname.conf
 
-	insmod /usr/modules/otg-hs.ko
-	sleep 1
-	insmod /usr/modules/8188fu.ko
+    insmod /usr/modules/otg-hs.ko
+    sleep 1
+    insmod /usr/modules/8188fu.ko
     echo "0" > /sys/module/8188fu/parameters/rtw_drv_log_level
 
     i=0
     while [ $i -lt 3 ]
-	do
-		if [ -d "/sys/class/net/wlan0" ];then
-			break
-		else
-			sleep 1
+    do
+        if [ -d "/sys/class/net/wlan0" ];then
+            break
+        else
+            sleep 1
             i=`expr $i + 1`
-		fi
-	done
+        fi
+    done
 
     ifconfig wlan0 up
 
@@ -91,7 +91,7 @@ init_network()
         udhcpc_status=$(udhcpc -i wlan0 -p /var/network/udhcpc.pid -b -x hostname:"$(hostname)")
         echo "udhcpc: $udhcpc_status" >> $LOGPATH
     else
-        echo "Use Anyka default WIFI setup" >> $LOGPATH       
+        echo "Use Anyka default WIFI setup" >> $LOGPATH
         /usr/sbin/wifi_station.sh start
         /usr/sbin/wifi_station.sh connect
     fi
