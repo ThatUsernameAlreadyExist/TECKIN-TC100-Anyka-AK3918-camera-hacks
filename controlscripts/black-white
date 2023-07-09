@@ -1,0 +1,35 @@
+#!/bin/sh
+SERVICE_NAME="Black and White"
+export LD_LIBRARY_PATH='/mnt/lib/:/lib/:/usr/lib/'
+
+. /mnt/scripts/common_functions.sh
+
+status()
+{
+  state=$(black_white status)
+  if [[ $state == "ON" || $state == "on" ]]; then
+    echo "PID: OK" 
+  fi
+}
+
+start()
+{
+  auto_night_mode off
+  black_white on
+}
+
+stop()
+{
+  auto_night_mode off
+  black_white off
+}
+
+if [ $# -eq 0 ]; then
+  start
+else
+  case $1 in start|stop|status)
+    $1
+    ;;
+  esac
+fi
+

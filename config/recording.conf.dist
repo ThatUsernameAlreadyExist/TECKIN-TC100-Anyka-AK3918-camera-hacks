@@ -1,0 +1,4 @@
+rec_motion_activated=1
+rec_postrecord_sec=5
+rec_file_duration_sec=60
+rec_reserverd_disk_mb=256

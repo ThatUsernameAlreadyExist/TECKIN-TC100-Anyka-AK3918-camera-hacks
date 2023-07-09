@@ -1,0 +1,9 @@
+ctrl_interface=/var/run/wpa_supplicant
+ctrl_interface_group=0 
+ap_scan=1 
+network={
+    ssid="My_WiFi_Network_Name" 
+    key_mgmt=WPA-PSK 
+    psk="My_WiFi_Password" 
+    priority=2 
+}

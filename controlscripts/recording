@@ -1,0 +1,90 @@
+#!/bin/sh
+SERVICE_NAME="Recording"
+PIDFILE="/var/run/recording.pid"
+WATCHDOG_PIDFILE="/var/run/recording-watch.pid"
+DCIM_PATH="/mnt/DCIM"
+CONFIGPATH="/mnt/config"
+
+export LD_LIBRARY_PATH='/mnt/lib/:/thirdlib:/system/lib/:/usr/lib/'
+
+. /mnt/scripts/common_functions.sh
+. /mnt/scripts/update_timezone.sh
+
+if [ ! -d "$DCIM_PATH" ]; then
+  mkdir -p $DCIM_PATH
+fi
+
+install_config $CONFIGPATH/recording.conf
+. $CONFIGPATH/recording.conf
+
+install_config $CONFIGPATH/rtspserver.conf
+
+status()
+{
+  pid="$(cat "$PIDFILE" 2>/dev/null)"
+  if [ "$pid" ]; then
+    kill -0 "$pid" >/dev/null && echo "PID: $pid" || return 1
+  fi
+}
+
+start()
+{
+  if [ "$(status)" != "" ]; then
+    echo "A recording is already running, please stop it or reboot"
+  else
+    echo "Starting recording"
+
+    USERNAME=$(read_config rtspserver.conf USERNAME)
+    USERPASSWORD=$(read_config rtspserver.conf USERPASSWORD)
+    if [ "$USERNAME" != "" ]; then
+        CREDENTIAL="$USERNAME:$USERPASSWORD@"
+    fi
+
+    if [ "$rec_motion_activated" == 1 ]; then
+        start_service_if_need /mnt/controlscripts/motion-detection
+        motion_args="-s_stop 1 -s_control_file /tmp/rec_control"
+        deactivate_motion_recording #Disable record on start
+    else
+        motion_args="-s_stop 0"
+    fi
+
+    CODEC0=$(read_config rtspserver.conf codec 0)
+
+    CODECSTR0="h264"
+    if [ "$CODEC0" == "2" ]; then
+      CODECSTR0="hevc"
+    fi
+
+    PORT=$(read_config rtspserver.conf PORT)
+
+    # Example:
+    # /mnt/bin/ffmpeg-min-recorder -loglevel info -rtbufsize 786432 -re -vcodec h264 -analyzeduration 0 -rtsp_transport tcp -stimeout 3500000 -i rtsp://root:jco66688@0.0.0.0:554/unicast -vcodec copy -acodec copy -map 0 -dn -f extsegment -s_max_prerecord_bytes 524288 -s_prerecord_ms 0 -s_postrecord_ms 8000 -s_max_file_duration_ms 60000 -s_reserved_disk_space_mb 512 -s_stop 1 -s_control_file /tmp/rec_control /mnt/DCIM
+
+    /mnt/bin/busybox nohup /mnt/bin/ffmpeg-min-recorder -loglevel quiet -rtbufsize 786432 -vcodec $CODECSTR0 -analyzeduration 0 -rtsp_transport tcp -stimeout 6500000 -i rtsp://${CREDENTIAL}127.0.0.1:$PORT/video0_unicast \
+        -vcodec copy -acodec copy -map 0 -dn -f extsegment \
+        -s_max_prerecord_bytes 524288 -s_prerecord_ms 0 -s_postrecord_ms ${rec_postrecord_sec}000 -s_max_file_duration_ms ${rec_file_duration_sec}000 \
+        -s_reserved_disk_space_mb $rec_reserverd_disk_mb $motion_args "$DCIM_PATH" &>/dev/null &
+    echo "$!" > "$PIDFILE"
+
+    ## Watchdog
+    if ! checkpid "$WATCHDOG_PIDFILE"; then
+      /mnt/scripts/service-watchdog.sh /mnt/controlscripts/recording 0 &
+      echo "$!" > "$WATCHDOG_PIDFILE"
+    fi
+  fi
+}
+
+stop()
+{
+  killpid "$WATCHDOG_PIDFILE"
+  killpid "$PIDFILE"
+}
+
+if [ $# -eq 0 ]; then
+  start
+else
+  case $1 in start|stop|status)
+    $1
+    ;;
+  esac
+fi

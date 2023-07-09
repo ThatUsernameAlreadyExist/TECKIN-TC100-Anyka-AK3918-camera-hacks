@@ -1,0 +1,48 @@
+@font-face {
+  font-family: 'icomoon';
+  src:  url('fonts/icomoon.eot?5xq5gk');
+  src:  url('fonts/icomoon.eot?5xq5gk#iefix') format('embedded-opentype'),
+    url('fonts/icomoon.ttf?5xq5gk') format('truetype'),
+    url('fonts/icomoon.woff?5xq5gk') format('woff'),
+    url('fonts/icomoon.svg?5xq5gk#icomoon') format('svg');
+  font-weight: normal;
+  font-style: normal;
+  font-display: block;
+}
+
+[class^="icon-"], [class*=" icon-"] {
+  /* use !important to prevent issues with browser extensions that change fonts */
+  font-family: 'icomoon' !important;
+  speak: never;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-play-circle-o:before {
+  content: "\f01d";
+}
+.icon-eye:before {
+  content: "\f06e";
+}
+.icon-microphone:before {
+  content: "\f130";
+}
+.icon-microphone-slash:before {
+  content: "\f131";
+}
+.icon-youtube-play:before {
+  content: "\f16a";
+}
+.icon-file-movie-o:before {
+  content: "\f1c8";
+}
+.icon-file-video-o:before {
+  content: "\f1c8";
+}

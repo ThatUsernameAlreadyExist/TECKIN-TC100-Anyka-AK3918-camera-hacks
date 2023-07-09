@@ -1,0 +1,34 @@
+#!/bin/sh
+SERVICE_NAME="Blue Led"
+export LD_LIBRARY_PATH='/mnt/lib/:/lib/:/usr/lib/'
+
+. /mnt/scripts/common_functions.sh
+
+status()
+{
+  state=$(blue_led status)
+  if [[ $state == "ON" || $state == "on" ]]; then
+    echo "PID: OK" 
+  fi
+}
+
+start()
+{
+  red_led off
+  blue_led on
+}
+
+stop()
+{
+  blue_led off
+}
+
+if [ $# -eq 0 ]; then
+  start
+else
+  case $1 in start|stop|status)
+    $1
+    ;;
+  esac
+fi
+

@@ -1,0 +1,51 @@
+#!/bin/sh
+SERVICE_NAME="FTP Server"
+PIDFILE="/var/run/ftp-server.pid"
+export LD_LIBRARY_PATH='/mnt/lib/:/thirdlib:/system/lib/:/usr/lib/'
+PATH=/mnt/bin:/system/bin:/bin:/sbin:/usr/bin:/usr/sbin
+CONFIGPATH="/mnt/config"
+
+. /mnt/scripts/common_functions.sh
+
+install_config $CONFIGPATH/ftp.conf
+. $CONFIGPATH/ftp.conf
+
+status()
+{
+  pid="$(cat "$PIDFILE" 2>/dev/null)"
+  if [ "$pid" ]; then
+    # Prints PID: $pid if exists and returns 0(no error) else returns 1(error condition)
+    kill -0 "$pid" >/dev/null && echo "PID: $pid" || return 1
+  fi
+}
+
+start()
+{
+  if [ "$(status)" != "" ]; then
+    echo "A ftp server is already running, please stop it or reboot"
+  else
+    stop
+    /mnt/bin/busybox tcpsvd 0 $PORT /mnt/bin/busybox ftpd -w -t 600 / &
+    sleep 1
+    PID=$(ps|awk '/[f]tpd/ {print $1}')
+    echo "$PID" > "$PIDFILE"
+  fi
+}
+
+stop()
+{
+  pid="$(cat "$PIDFILE" 2>/dev/null)"
+  if [ "$pid" ]; then
+    rm "$PIDFILE" 1> /dev/null 2>&1
+  fi
+  ps|awk '/[f]tpd/ {print $1}' | while read OLDPID; do kill -9 $OLDPID; done;
+}
+
+if [ $# -eq 0 ]; then
+  start
+else
+  case $1 in start|stop|status)
+    $1
+    ;;
+  esac
+fi

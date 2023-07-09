@@ -1,0 +1,260 @@
+<style id="custom_css">
+
+@media screen and (min-width: 600px) {
+    .vrc {
+      width: 30%;
+      position: relative;
+      float:left;
+    }
+
+    .vpl {
+      margin-left: 35%;
+    }
+}
+
+#dwbtn,
+#rmbtn {
+    width: 100%;
+    margin-bottom: 1em;
+}
+
+@media screen and (min-width: 1024px) {
+    #dwbtn,
+    #rmbtn{
+        width: 75%
+    }
+}
+
+#dateselectdiv,
+#recordselectdiv,
+#dateselect,
+#recordselect    {
+        width: 100%;
+        margin-bottom: 1em;
+    }
+}
+</style>
+
+<div class="vrc">
+<div class='card status_card'>
+<header class='card-header'><p class='card-header-title'>Select video</p></header>
+    <div class='card-content'>
+        <div id="dateselectdiv" class="select is-loading">
+          <select id="dateselect" onchange="onDateChanged()">
+          </select>
+        </div>
+        <div id="recordselectdiv" class="select is-loading">
+          <select id="recordselect" onchange="onRecordChanged()">
+          </select>
+        </div>
+        <input class='switch' id='autoplay' type='checkbox' onclick="autoPlayCheck(this)">
+        <label for='autoplay'>Autoplay</label>
+    </div>
+</div>
+<a id="dwbtn" class="button is-primary" disabled onclick="downloadRecord()">Download</a>
+<a id="rmbtn" class="button is-danger" disabled onclick="removeRecord()">Remove</a>
+</div>
+
+<div class="vpl">
+    <p id="videonote" class="help is-danger"/>
+    <video id="rpl" controls width="100%"/>
+</div>
+
+
+<script type="text/javascript">
+
+function getBrowserName() {
+  var browserName = '';
+  var userAgent = navigator.userAgent;
+  (typeof InstallTrigger !== 'undefined') && (browserName = 'Firefox');
+  ( /* @cc_on!@*/ false || !!document.documentMode) && (browserName = 'IE');
+  (!!window.chrome && userAgent.match(/OPR/)) && (browserName = 'Opera');
+  (!!window.chrome && userAgent.match(/Edge/)) && (browserName = 'Edge');
+  (!!window.chrome && !userAgent.match(/(OPR|Edge)/)) && (browserName = 'Chrome');
+
+  /**
+   * Expected returns
+   * Firefox, Opera, Edge, Chrome
+   */
+  return browserName;
+}
+
+if (getBrowserName() != 'Chrome') {
+   document.getElementById('videonote').innerHTML = 'Video playback supported only in Chrome.';
+}
+
+var recordsMap = new  Map();
+var autoPlayEnabled = false;
+
+function autoPlayCheck(checkbox)
+{
+    if (checkbox.checked) {
+        $('#rpl').attr("autoplay", true);
+        autoPlayEnabled = true;
+    }
+    else {
+        $('#rpl').removeAttr("autoplay");
+        autoPlayEnabled = false;
+    }
+}
+
+function downloadRecord()
+{
+    var selectedRecord = $('#recordselect').children("option:selected").val();
+    if (selectedRecord) {
+        var selectedDate = $('#dateselect').children("option:selected").val();
+        if (selectedDate) {
+            var record = "/DCIM/" + selectedDate + "_" + selectedRecord + ".mkv";
+            window.open(record , '_blank');
+        }
+    }
+}
+
+function removeRecord()
+{
+    var selectedRecord = $('#recordselect').children("option:selected").val();
+    if (selectedRecord) {
+        var selectedDate = $('#dateselect').children("option:selected").val();
+        if (selectedDate) {
+            var record = selectedDate + "_" + selectedRecord + ".mkv";
+
+            var result = confirm("Want to delete file '" + record + "'?");
+            if (result) {
+                $('#rmbtn').attr("disabled", true);
+
+                $.get("cgi-bin/viewrecords.cgi", {
+                cmd: "remove_record",
+                record: record
+                }).done(function () {
+                    recordsMap[selectedDate].delete(selectedRecord);
+                    if (recordsMap[selectedDate].size == 0) {
+                        recordsMap.delete(selectedDate);
+                        $('#dateselect option:contains("' + selectedDate + '")').remove();
+                        onDateChanged();
+                    }
+                    else {
+                        $('#recordselect option:contains("' + selectedRecord + '")').remove();
+                        onRecordChanged();
+                    }
+
+                    $('#rmbtn').removeAttr("disabled");
+                });
+            }
+        }
+    }
+}
+
+function onRecordChanged()
+{
+    var selectedRecord = $('#recordselect').children("option:selected").val();
+    if (selectedRecord) {
+        var selectedDate = $('#dateselect').children("option:selected").val();
+        if (selectedDate) {
+            var file = selectedDate + "_" + selectedRecord + ".mkv";
+            var src = "/DCIM/" + file;
+            $("#rpl").html('<source src=\"' + src +'\" type="video/webm"></source>');
+            $("#rpl")[0].load();
+        }
+    }
+}
+
+function setDateRecords(records)
+{
+    if (records) {
+        for(let rec of records) {
+            $('#recordselect').append("<option>" + rec + "</option>");
+        }
+    }
+    $('#recordselectdiv').removeClass("is-loading");
+    $('#dwbtn').removeAttr("disabled");
+    $('#rmbtn').removeAttr("disabled");
+    onRecordChanged();
+}
+
+function onDateChanged()
+{
+    var selectedDate = $('#dateselect').children("option:selected").val();
+    if (selectedDate) {
+        $('#recordselectdiv').addClass("is-loading");
+        $('#dwbtn').attr("disabled", true);
+        $('#rmbtn').attr("disabled", true);
+
+        $('#recordselect').find('option').remove();
+
+        records = recordsMap[selectedDate];
+
+        if (records && records.size > 0) {
+            setDateRecords(records);
+        }
+        else {
+            $.get("cgi-bin/viewrecords.cgi", {
+            cmd: "list_records",
+            date: selectedDate
+            }).done(function (data) {
+                var allRecords = eval(data);
+                var recSet = new Set();
+
+                for (var i = 0; i < allRecords.length; i++) {
+                    recSet.add(allRecords[i].record);
+                }
+
+                recordsMap[selectedDate] = recSet;
+                setDateRecords(recSet);
+            });
+        }
+    }
+}
+
+
+$(document).ready(function ()
+{
+
+$('#rpl').on('ended', function()
+{
+    if (autoPlayEnabled) {
+        var curRec = $('#recordselect option:selected');
+
+        if ($('#recordselect option').last().val() != curRec.val())
+        {
+            var nextRec = curRec.next();
+            curRec.removeAttr('selected');
+            nextRec.attr('selected', 'selected');
+            onRecordChanged();
+        }
+    }
+});
+
+$.get("cgi-bin/viewrecords.cgi", {
+        cmd: "list_dates"
+    }).done(function (data) {
+
+        //debugger;
+        var allDates = eval(data);
+
+         $('#dateselectdiv').removeClass("is-loading");
+         $('#recordselectdiv').removeClass("is-loading");
+
+        for (var i = 0; i < allDates.length; i++) {
+            var date = allDates[i].date;
+            var recSet = new Set();
+            recordsMap[date] = recSet;
+
+            $('#dateselect').append("<option>" + date + "</option>");
+        }
+
+        if (allDates.length > 0) {
+            $('#dateselect option:selected').removeAttr('selected');
+            $('#dateselect option').last().attr('selected', 'selected');
+            onDateChanged();
+        }
+        else
+        {
+            $("#rpl").replaceWith("<div class='notification is-info'>No video records found.<br>Enable <strong>'Recording'</strong> service in  settings to store video on MicroSD-card.</div>");
+            $('#dateselect').attr("disabled", true);
+            $('#recordselect').attr("disabled", true);
+            $('#autoplay').attr("disabled", true);
+        }
+    });
+})
+</script>
+

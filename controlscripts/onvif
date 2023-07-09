@@ -1,0 +1,83 @@
+#!/bin/sh
+SERVICE_NAME="ONVIF Discovery"
+PIDFILE="/var/run/onvif.pid"
+WATCHDOG_PIDFILE="/var/run/onvif-watch.pid"
+export LD_LIBRARY_PATH='/mnt/lib/:/thirdlib:/system/lib/:/usr/lib/'
+CONFIGPATH="/mnt/config"
+
+. /mnt/scripts/common_functions.sh
+
+install_config $CONFIGPATH/onvif.conf
+. $CONFIGPATH/onvif.conf
+
+install_config $CONFIGPATH/rtspserver.conf
+
+status()
+{
+  pid="$(cat "$PIDFILE" 2>/dev/null)"
+  if [ "$pid" ]; then
+    # Prints PID: $pid if exists and returns 0(no error) else returns 1(error condition)
+    kill -0 "$pid" >/dev/null && echo "PID: $pid" || return 1
+  fi
+}
+
+start()
+{
+  if [ "$(status)" != "" ]; then
+    echo "A ONVIF Discovery service is already running, please stop it or reboot"
+  else
+    echo "Starting ONVIF Discovery service"
+    
+    LOGPATH="/dev/null"
+
+    WIDTH0=$(read_config  rtspserver.conf width   0)
+    HEIGHT0=$(read_config rtspserver.conf height  0)
+    CODEC0=$(read_config  rtspserver.conf codec   0)
+    FPS0=$(read_config    rtspserver.conf fps     0)
+    BPS0=$(read_config    rtspserver.conf bps     0)
+
+    CODECSTR0="H264"
+    if [ "$CODEC0" == "2" ]; then
+      CODECSTR0="H265"
+    fi
+
+    WIDTH1=$(read_config  rtspserver.conf width   1)
+    HEIGHT1=$(read_config rtspserver.conf height  1)
+    CODEC1=$(read_config  rtspserver.conf codec   1)
+    FPS1=$(read_config    rtspserver.conf fps     1)
+    BPS1=$(read_config    rtspserver.conf bps     1)
+
+    CODECSTR1="H264"
+    if [ "$CODEC1" == "2" ]; then
+      CODECSTR1="H265"
+    fi
+
+    PORT=$(read_config rtspserver.conf PORT)
+
+    /mnt/bin/monvifd -p $ONVIF_PORT -w 443 -wp https -r $PORT -en2 1 -hwn $HW_NAME -vnn $VENDOR_NAME -dn $DEVICE_NAME -mod $DEVICE_MODEL \
+        -rp1 video0_unicast -vw1 $WIDTH0 -vh1 $HEIGHT0 -vc1 $CODECSTR0 -vcb1 $BPS0 -fps1 $FPS0 \
+        -rp2 video1_unicast -vw2 $WIDTH1 -vh2 $HEIGHT1 -vc2 $CODECSTR1 -vcb1 $BPS1 -fps1 $FPS1 2>> "$LOGPATH" >> "$LOGPATH" &
+    echo "$!" > "$PIDFILE"
+
+    ## Watchdog
+    if ! checkpid "$WATCHDOG_PIDFILE"; then
+      /mnt/scripts/service-watchdog.sh /mnt/controlscripts/onvif 0 &
+      echo "$!" > "$WATCHDOG_PIDFILE"
+    fi
+  fi
+}
+
+stop()
+{
+  killpid "$WATCHDOG_PIDFILE"
+  killpid "$PIDFILE"
+}
+
+if [ $# -eq 0 ]; then
+  start
+else
+  case $1 in start|stop|status)
+    $1
+    ;;
+  esac
+fi

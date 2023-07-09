@@ -1,0 +1,11 @@
+#######################################################################
+# Edit this file and move it to /mnt/config/monvifd.conf    #
+# if you need to add options, otherwise defaults will be used         #
+#######################################################################
+
+
+ONVIF_PORT=8081
+VENDOR_NAME=Anyka
+HW_NAME=AK3918
+DEVICE_NAME=Teckin
+DEVICE_MODEL=TC100

@@ -1,0 +1,33 @@
+#!/bin/sh
+SERVICE_NAME="IR Cut"
+export LD_LIBRARY_PATH='/mnt/lib/:/lib/:/usr/lib/'
+
+. /mnt/scripts/common_functions.sh
+
+status()
+{
+  state=$(ir_cut status)
+  if [[ $state == "ON" || $state == "on" ]]; then
+    echo "PID: OK" 
+  fi
+}
+
+start()
+{
+  ir_cut on
+}
+
+stop()
+{
+  ir_cut off
+}
+
+if [ $# -eq 0 ]; then
+  start
+else
+  case $1 in start|stop|status)
+    $1
+    ;;
+  esac
+fi
+

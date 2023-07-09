@@ -1,0 +1,39 @@
+#!/bin/sh
+SERVICE_NAME="Timelapse"
+PIDFILE='/var/run/timelapse.pid'
+
+. /mnt/scripts/update_timezone.sh
+
+status()
+{  
+  pid="$(cat "$PIDFILE" 2>/dev/null)"
+  if [ "$pid" ]; then
+    # Prints PID: $pid if exists and returns 0(no error) else returns 1(error condition)
+    kill -0 "$pid" >/dev/null && echo "PID: $pid" || return 1
+  fi
+}
+
+start()
+{
+  LOG=/dev/null
+  echo "Starting timelapse"
+  /mnt/bin/busybox nohup /mnt/scripts/timelapse.sh &> /dev/null &
+  PID=$!
+  echo $PID > $PIDFILE
+}
+
+stop()
+{ 
+  PID=$(cat $PIDFILE)
+  kill -9 $PID
+  rm $PIDFILE
+}
+
+if [ $# -eq 0 ]; then
+  start
+else
+  case $1 in start|stop|status)
+    $1
+    ;;
+  esac
+fi

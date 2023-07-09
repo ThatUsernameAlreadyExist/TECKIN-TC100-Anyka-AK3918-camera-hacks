@@ -1,0 +1,51 @@
+#!/bin/sh
+SERVICE_NAME="Telnet Server"
+PIDFILE="/var/run/telnet-server.pid"
+CONFIGPATH="/mnt/config"
+export LD_LIBRARY_PATH='/mnt/lib/:/thirdlib:/system/lib/:/usr/lib/'
+PATH=/mnt/bin:/system/bin:/bin:/sbin:/usr/bin:/usr/sbin
+
+. /mnt/scripts/common_functions.sh
+
+install_config $CONFIGPATH/telnetd.conf
+. $CONFIGPATH/telnetd.conf
+
+
+status()
+{
+  pid="$(cat "$PIDFILE" 2>/dev/null)"
+  if [ "$pid" ]; then
+    # Prints PID: $pid if exists and returns 0(no error) else returns 1(error condition)
+    kill -0 "$pid" >/dev/null && echo "PID: $pid" || return 1
+  fi
+}
+
+start()
+{
+  if [ "$(status)" != "" ]; then
+    echo "A telnet server is already running, please stop it or reboot"
+  else
+    telnetd -p$TELNET_PORT
+    sleep 1
+    PID=$(ps | grep "[t]elnetd -p$TELNET_PORT" | awk '{print $1}')
+    echo "$PID" > "$PIDFILE"
+  fi
+}
+
+stop()
+{
+  pid="$(cat "$PIDFILE" 2>/dev/null)"
+  if [ "$pid" ]; then
+    kill "$pid"
+    rm "$PIDFILE" 1> /dev/null 2>&1
+  fi
+}
+
+if [ $# -eq 0 ]; then
+  start
+else
+  case $1 in start|stop|status)
+    $1
+    ;;
+  esac
+fi

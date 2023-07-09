@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html class="has-navbar-fixed-top">
+
+<head>
+    <meta charset=utf-8 />
+    <title>Anyka</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- CSS Framework -->
+    <link href="css/bulma.0.6.2.min.css" rel="stylesheet">
+    <link href="css/bulma-divider.min.css" rel="stylesheet">
+    <link href="css/bulma-switch.1.0.1.min.css" rel="stylesheet">
+    <link href="css/bulma-badge.1.0.1.min.css" rel="stylesheet">
+    <link href="css/bulma-quickview.1.0.1.min.css" rel="stylesheet">
+    <link href="icomoon/style.css" rel="stylesheet">
+    <!-- jQuery  -->
+    <script src="scripts/jquery-3.3.1.min.js" type="text/javascript"></script>
+
+    <script type="text/javascript" src="scripts/smoothie.js"></script>
+
+    <style id="custom_css">
+        body {
+            display: flex;
+            min-height: 100vh;
+            flex-direction: column;
+        }
+
+        #main {
+            flex: 1 0 auto;
+        }
+
+        /*
+        script_card <= scripts.cgi
+        status_card <= status.cgi
+        */
+
+        .script_card,
+        .status_card {
+            max-width: 100%;
+            margin-bottom: 1em;
+        }
+
+        @media screen and (min-width: 1024px) {
+            .script_card,
+            .status_card {
+                /* reduce width for large screens */
+                max-width: 75%
+            }
+        }
+
+        #liveview {
+            padding: 2px;
+            border: dotted 1px #4a4a4a;
+            margin: 0 auto;
+            display: block;
+            max-height: 80vh;
+        }
+        
+
+        .icnbtn {
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+
+    </style>
+</head>
+
+<body>
+    <nav class="navbar is-fixed-top" role="navigation" aria-label="main navigation">
+        <div class="container">
+            <div class="navbar-brand">
+                <a id="navbar_burger" role="button" class="navbar-burger" data-target="nav_menu" aria-label="menu" aria-expanded="false">
+                    <span aria-hidden="true"></span>
+                    <span aria-hidden="true"></span>
+                    <span aria-hidden="true"></span>
+                </a>
+                <a class="navbar-item icnbtn" href="." id="title" title="Anyka"><i class="icon-eye"></i></a>
+                <a class="navbar-item icnbtn onpage" href="javascript: void(0)" data-target="view_records.html" id="viewrecordspage" title="Records"><i class="icon-play-circle-o"></i></a>
+                <!-- TODO: uncomment when implemented
+                <a class="navbar-item icnbtn" id="btn-ptt" onpointerdown="pushToTalk('on')" title="Push To Talk"><span><i class="icon-microphone"></i></span></a>
+                -->
+            </div>
+            <div class="navbar-menu" id="nav_menu">
+                <!-- left menu -->
+                <div class="navbar-start" id="common_nav">
+                    <div class="navbar-item has-dropdown is-hoverable">
+                        <span class="navbar-link">Manage</span>
+                        <div class="navbar-dropdown is-boxed">
+                            <a id="status" class="navbar-item onpage" href="javascript: void(0)" data-target="cgi-bin/status.cgi">Settings</a>
+                            <a id="scripts" class="navbar-item onpage" href="javascript: void(0)" data-target="cgi-bin/scripts.cgi">Services</a>
+                            <a id="camcontrols" class="navbar-item onpage" href="javascript: void(0)" data-target="cgi-bin/camcontrols.cgi?cmd=getsettings">Camera Controls</a>
+                        </div>
+                    </div>
+                    <div class="navbar-item has-dropdown is-hoverable">
+                        <span class="navbar-link">System</span>
+                        <div class="navbar-dropdown is-boxed">
+                            <a class="navbar-item prompt" href="javascript: void(0)" data-message="Are you sure you wish to reboot?" data-target="cgi-bin/action.cgi?cmd=reboot">Reboot</a>
+                            <a class="navbar-item prompt" href="javascript: void(0)" data-message="Are you sure you wish to shutdown?" data-target="cgi-bin/action.cgi?cmd=shutdown">Shutdown</a>
+                        </div>
+                    </div>
+                    <div class="navbar-item has-dropdown is-hoverable">
+                        <span class="navbar-link">Information</span>
+                        <div class="navbar-dropdown is-boxed">
+                            <a id="network" class="navbar-item onpage" href="javascript: void(0)" data-target="cgi-bin/network.cgi">Network Information</a>
+                            <a id="disk" class="navbar-item onpage" href="javascript: void(0)" data-target="cgi-bin/disk.cgi">Disk Information</a>
+                            <a id="disk" class="navbar-item onpage" href="javascript: void(0)" data-target="cgi-bin/sysusageinfo.cgi">System Usage Information</a>
+                            <a id="disk" class="navbar-item onpage" href="javascript: void(0)" data-target="cgi-bin/devinfo.cgi">Device Information</a>
+                            <a id="logs" class="navbar-item onpage" href="javascript: void(0)" data-target="logs.html">Logs</a>
+                        </div>
+                    </div>
+
+                </div>
+                <!-- right menu -->
+                <div class="navbar-end">
+                    <div id="camcontrol_link" class="navbar-item has-dropdown">
+                        <!-- Camera Movement Controls -->
+                        <span class="navbar-link">Camera Controls</span>
+                        <div id="camcontrol_items" class="navbar-dropdown is-boxed is-right">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <section id="main" class="section">
+        <div id="content" class="container">
+            <img id="liveview" src="cgi-bin/currentpic.cgi" onerror="this.src='css/unable_load.png';">
+        </div>
+    </section>
+
+    <footer class="footer">
+    <div class="container">
+        <div class="has-text-centered is-size-7">
+            <p>
+                </a><em id="sysusage">...</em> 
+            </p>
+            <div class="dropdown is-hoverable">
+                <div class="dropdown-trigger">
+                    <a class="is-small is-link" aria-haspopup="true" aria-controls="dropdown-menu">
+                        <span>Theme</span>
+                    </a>
+                </div>
+                <div class="dropdown-menu" role="menu">
+                    <div class="dropdown-content">
+                        <a id="theme_choice_0" href="javascript: setTheme('0')" class="theme_choice dropdown-item" data-css="css/bulma.0.6.2.min.css">
+                            Light
+                        </a>
+                        <a id="theme_choice_1" href="javascript: setTheme('1')" class="theme_choice dropdown-item" data-css="css/bulmaswatch.min.css">
+                            Dark
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <div id="quickviewDefault" class="quickview">
+        <header class="quickview-header">
+            <p class="title">Quickview</p>
+            <span id="quickViewClose" class="delete" data-dismiss="quickview"></span>
+        </header>
+
+        <div class="quickview-body">
+            <div class="quickview-block" id="quicViewContent">
+            </div>
+        </div>
+
+        <footer class="quickview-footer">
+
+        </footer>
+    </div>
+
+    <script src="scripts/index.html.js" type="text/javascript"></script>
+    <script src="scripts/audiorecorder.js" type="text/javascript"></script>
+    <script src="scripts/audiocapture.js" type="text/javascript"></script>
+
+</body>
+
+</html>

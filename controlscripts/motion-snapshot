@@ -1,0 +1,36 @@
+#!/bin/sh
+SERVICE_NAME="Motion Detection Snapshot"
+export LD_LIBRARY_PATH='/mnt/lib/:/lib/:/usr/lib/'
+
+. /mnt/scripts/common_functions.sh
+
+CONFIGPATH=/mnt/config/motion.conf
+install_config $CONFIGPATH
+
+status()
+{
+  . $CONFIGPATH 2> /dev/null
+  if [ "$save_snapshot" == "true" ]; then
+    echo "PID: OK" 
+  fi
+}
+
+start()
+{
+  rewrite_config $CONFIGPATH save_snapshot "true"
+}
+
+stop()
+{
+  rewrite_config $CONFIGPATH save_snapshot "false"
+}
+
+if [ $# -eq 0 ]; then
+  start
+else
+  case $1 in start|stop|status)
+    $1
+    ;;
+  esac
+fi
+

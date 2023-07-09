@@ -1,0 +1,16 @@
+#!/bin/sh
+export LD_LIBRARY_PATH='/mnt/lib/:/lib/:/usr/lib/'
+CONFIGPATH="/mnt/config"
+## Load some common functions:
+. /mnt/scripts/common_functions.sh
+
+## Create a certificate for the webserver
+if [ ! -f $CONFIGPATH/lighttpd.pem ]; then
+    export OPENSSL_CONF=$CONFIGPATH/openssl.cnf
+    /mnt/bin/openssl req -new -x509 -keyout $CONFIGPATH/lighttpd.pem -out $CONFIGPATH/lighttpd.pem -days 365 -nodes -subj "/C=DE/ST=Mars/L=HellasPlanitia/O=.../OU=.../CN=.../emailAddress=..."
+    chmod 400 $CONFIGPATH/lighttpd.pem
+fi
+
+## Start Webserver:
+install_config $CONFIGPATH/lighttpd.conf
+/mnt/bin/lighttpd -f /mnt/config/lighttpd.conf

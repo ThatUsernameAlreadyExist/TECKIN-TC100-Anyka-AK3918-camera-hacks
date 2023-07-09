@@ -1,0 +1,32 @@
+#!/bin/sh
+SERVICE_NAME="Auto Night Detection"
+
+status()
+{
+  state=$(/mnt/bin/setconf -g n)
+  if [[ $state == "2" ]]; then
+    echo "PID: OK" 
+  fi
+}
+
+start()
+{
+  /mnt/bin/setconf -k n -v 2
+  #/mnt/bin/rwconf /mnt/config/rtspserver.conf w " " daynight 2
+}
+
+stop()
+{
+  /mnt/bin/setconf -k n -v 3
+  #/mnt/bin/rwconf /mnt/config/rtspserver.conf w " " daynight 3
+}
+
+if [ $# -eq 0 ]; then
+  start
+else
+  case $1 in start|stop|status)
+    $1
+    ;;
+  esac
+fi
+

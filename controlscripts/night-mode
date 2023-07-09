@@ -1,0 +1,40 @@
+#!/bin/sh
+SERVICE_NAME="Night Mode"
+export LD_LIBRARY_PATH='/mnt/lib/:/lib/:/usr/lib/'
+
+. /mnt/scripts/common_functions.sh
+
+status()
+{
+  state_led=$(ir_led status)
+  state_cut=$(ir_cut status)
+  state_bw=$(black_white status)
+  if [[ $state_led == "ON" || $state_led == "on" ]] && [[ $state_cut == "OFF" || $state_cut == "off" ]] && [[ $state_bw == "ON" || $state_bw == "on" ]]; then
+    echo "PID: OK"
+  fi
+}
+
+start()
+{
+  auto_night_mode off
+  black_white on
+  ir_led on
+  ir_cut off
+}
+
+stop()
+{
+  auto_night_mode off
+  black_white off
+  ir_led off
+  ir_cut on
+}
+
+if [ $# -eq 0 ]; then
+  start
+else
+  case $1 in start|stop|status)
+    $1
+    ;;
+  esac
+fi

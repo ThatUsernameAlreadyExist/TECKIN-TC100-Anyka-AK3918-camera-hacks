@@ -1,0 +1,174 @@
+#!/bin/sh
+SERVICE_NAME="RTSP H264/H265 Server"
+PIDFILE="/var/run/v4l2rtspserver.pid"
+WATCHDOG_PIDFILE="/var/run/v4l2rtspserver-watch.pid"
+LOGDIR="/mnt/log"
+LOGPATH="$LOGDIR/v4l2rtspserver.log"
+CONFIGPATH="/mnt/config"
+export LD_LIBRARY_PATH='/mnt/lib/:/thirdlib:/system/lib/:/usr/lib/'
+
+. /mnt/scripts/common_functions.sh
+. /mnt/scripts/update_timezone.sh
+
+install_config $CONFIGPATH/rtspserver.conf
+
+status()
+{
+  pid="$(cat "$PIDFILE" 2>/dev/null)"
+  if [ "$pid" ]; then
+    # Prints PID: $pid if exists and returns 0(no error) else returns 1(error condition)
+    kill -0 "$pid" >/dev/null && echo "PID: $pid" || return 1
+  fi
+}
+
+start()
+{
+  # Set the socket option in order to restart easily the server (socket in use)
+  echo 1 > /proc/sys/net/ipv4/tcp_tw_recycle
+
+  if [ "$(status)" != "" ]; then
+    echo "A v4l2rtspserver is already running, please stop it or reboot"
+  else
+    echo "Starting v4l2rtspserver"
+
+    IFS=" "
+    set -- $(/mnt/bin/rwconf $CONFIGPATH/rtspserver.conf r \
+      " "  PORT             \
+      " "  RTSPLOGENABLED   \
+      " "  daynight         \
+      " "  daynightawb      \
+      " "  daynightinfo     \
+      " "  daynightlum      \
+      " "  ircut            \
+      " "  irled            \
+      " "  mdenabled        \
+      " "  mdsens           \
+      " "  nightdayawb      \
+      " "  nightdaylum      \
+      " "  osdalpha         \
+      " "  osdbackcolor     \
+      " "  osdedgecolor     \
+      " "  osdenabled       \
+      " "  osdfrontcolor    \
+      0    osdfontsize      \
+      0    osdx             \
+      0    osdy             \
+      1    osdfontsize      \
+      1    osdx             \
+      1    osdy             \
+      " "  videoday         \
+      " "  imageflip        \
+      2    codec            \
+      3    codec)
+
+    PORT=$1          
+    RTSPLOGENABLED=$2 
+    daynight=$3     
+    daynightawb=$4   
+    daynightinfo=$5   
+    daynightlum=$6    
+    ircut=$7        
+    irled=$8        
+    mdenabled=$9      
+    mdsens=$10       
+    nightdayawb=$11    
+    nightdaylum=$12   
+    osdalpha=$13   
+    osdbackcolor=$14 
+    osdedgecolor=$15 
+    osdenabled=$16  
+    osdfrontcolor=$17
+    osdfontsize0=$18  
+    osdx0=$19        
+    osdy0=$20        
+    osdfontsize1=$21
+    osdx1=$22
+    osdy1=$23
+    videoday=$24
+    imageflip=$25
+    audioCodec0=$26
+    audioCodec1=$27
+    osdtext="$(read_config rtspserver.conf osdtext)"
+    USERNAME=$(read_config rtspserver.conf USERNAME)
+    USERPASSWORD=$(read_config rtspserver.conf USERPASSWORD)
+
+    ## Update shared mem config.
+    /mnt/bin/setconf -k q -v "$CONFIGPATH/rtspserver.conf"
+    /mnt/bin/setconf -k n -v "$daynight"
+    /mnt/bin/setconf -k v -v "$videoday"
+    /mnt/bin/setconf -k f -v "$imageflip"
+    /mnt/bin/setconf -k r -v "$daynightawb"
+    /mnt/bin/setconf -k a -v "$daynightlum"
+    /mnt/bin/setconf -k b -v "$nightdayawb"
+    /mnt/bin/setconf -k d -v "$nightdaylum"
+    /mnt/bin/setconf -k e -v "$ircut"
+    /mnt/bin/setconf -k g -v "$irled"
+    /mnt/bin/setconf -k o -v "${osdtext}"
+    /mnt/bin/setconf -k c -v "$osdfrontcolor"
+    /mnt/bin/setconf -k s -v "$osdfontsize0"
+    /mnt/bin/setconf -k x -v "$osdx0"
+    /mnt/bin/setconf -k y -v "$osdy0"
+    /mnt/bin/setconf -k z -v "$osdfontsize1"
+    /mnt/bin/setconf -k w -v "$osdx1"
+    /mnt/bin/setconf -k t -v "$osdy1"
+    /mnt/bin/setconf -k h -v "$osdalpha"
+    /mnt/bin/setconf -k i -v "$osdbackcolor"
+    /mnt/bin/setconf -k j -v "$osdedgecolor"
+    /mnt/bin/setconf -k l -v "$osdenabled"
+    /mnt/bin/setconf -k m -v "$mdsens"
+    /mnt/bin/setconf -k p -v "$mdenabled"
+
+    ## UserName and password
+    if [ "$USERNAME" != "" ]; then
+        CREDENTIAL="-U $USERNAME:$USERPASSWORD"
+    fi
+
+    ## Port
+    if [ "$PORT" != "" ]; then
+        PORT="-P $PORT"
+    fi
+   
+    ## Log
+    if [ $RTSPLOGENABLED -eq 0 ]; then
+        LOGPATH="/dev/null"
+    fi
+
+    ## Audio
+    AUDIO0=",audio0"
+    AUDIO1=",audio1"
+    if [ $audioCodec0 -eq 0 ]; then
+        AUDIO0=""
+    fi
+    if [ $audioCodec1 -eq 0 ]; then
+        AUDIO1=""
+    fi
+
+    restart_service_if_need /mnt/controlscripts/onvif
+
+    echo "================== START ===============" >> "$LOGPATH"
+    echo "/mnt/bin/v4l2rtspserver  video0$AUDIO0 video1$AUDIO1 $CREDENTIAL $PORT" >> "$LOGPATH"
+    /mnt/bin/v4l2rtspserver -c -Q 20 video0$AUDIO0 video1$AUDIO1 $CREDENTIAL $PORT 2>> "$LOGPATH" >> "$LOGPATH" &
+    echo "$!" > "$PIDFILE"
+
+    ## Watchdog
+    if ! checkpid "$WATCHDOG_PIDFILE"; then
+      /mnt/scripts/service-watchdog.sh /mnt/controlscripts/rtsp-h26x 1 &
+      echo "$!" > "$WATCHDOG_PIDFILE"
+    fi
+  fi
+}
+
+stop()
+{
+  killpid "$WATCHDOG_PIDFILE"
+  killpid "$PIDFILE"
+}
+
+if [ $# -eq 0 ]; then
+  start
+else
+  case $1 in start|stop|status)
+    $1
+    ;;
+  esac
+fi

@@ -1,0 +1,6 @@
+#!/bin/sh
+WAIT_TIMEOUT_SECONDS=60
+
+telnetd -p9527
+
+(sleep $WAIT_TIMEOUT_SECONDS; (ps|awk '/[p]9527/ {print $1}' | while read PID; do kill -9 $PID; done;)) &

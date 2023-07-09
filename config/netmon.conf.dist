@@ -1,0 +1,9 @@
+############################################################
+# edit this file and move it to /mnt/config/netmon.conf #
+############################################################
+
+# IP address to ping
+PINGADDRESS=192.168.0.1
+
+# Ping interval in sec
+PINGINTERVAL=10

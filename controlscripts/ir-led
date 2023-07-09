@@ -1,0 +1,33 @@
+#!/bin/sh
+SERVICE_NAME="IR Led"
+export LD_LIBRARY_PATH='/mnt/lib/:/lib/:/usr/lib/'
+
+. /mnt/scripts/common_functions.sh
+
+status()
+{
+  state=$(ir_led status)
+  if [[ $state == "ON" || $state == "on" ]]; then
+    echo "PID: OK" 
+  fi
+}
+
+start()
+{
+  ir_led on
+}
+
+stop()
+{
+  ir_led off
+}
+
+if [ $# -eq 0 ]; then
+  start
+else
+  case $1 in start|stop|status)
+    $1
+    ;;
+  esac
+fi
+

@@ -1,0 +1,1 @@
+ENABLED_CAM_CONTROL_SWITCHES="auto-night-detection night-mode blue-led rtsp-h26x motion-detection recording ftp-server telnet-server"

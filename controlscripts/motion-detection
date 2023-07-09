@@ -1,0 +1,51 @@
+#!/bin/sh
+SERVICE_NAME="Motion Detection"
+MONITOR_PIDFILE="/var/run/detection-monitor.pid"
+export LD_LIBRARY_PATH='/mnt/lib/:/lib/:/usr/lib/'
+CONFIGPATH="/mnt/config"
+
+. /mnt/scripts/common_functions.sh
+
+install_config $CONFIGPATH/rtspserver.conf
+
+status()
+{
+  state=$(motion_detection status)
+  if [[ $state == "ON" || $state == "on" ]]; then
+    if checkpid "$MONITOR_PIDFILE"; then
+        pid="$(cat "$MONITOR_PIDFILE" 2>/dev/null)"
+        echo "PID: $pid"
+    fi
+  fi
+}
+
+start()
+{
+  mdsens=$(read_config rtspserver.conf mdsens)
+
+  /mnt/bin/setconf -k m -v $mdsens
+
+  motion_detection on
+
+  ## Motion detection monitor
+  if ! checkpid "$MONITOR_PIDFILE"; then
+    /mnt/scripts/detection-monitor.sh &
+    echo "$!" > "$MONITOR_PIDFILE"
+  fi
+}
+
+stop()
+{
+  motion_detection off
+  killpid "$MONITOR_PIDFILE"
+}
+
+if [ $# -eq 0 ]; then
+  start
+else
+  case $1 in start|stop|status)
+    $1
+    ;;
+  esac
+fi
+
