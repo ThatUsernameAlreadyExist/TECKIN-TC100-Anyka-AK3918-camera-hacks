@@ -23,9 +23,6 @@ status()
 
 start()
 {
-  # Set the socket option in order to restart easily the server (socket in use)
-  echo 1 > /proc/sys/net/ipv4/tcp_tw_recycle
-
   if [ "$(status)" != "" ]; then
     echo "A v4l2rtspserver is already running, please stop it or reboot"
   else
@@ -35,88 +32,15 @@ start()
     set -- $(/mnt/bin/rwconf $CONFIGPATH/rtspserver.conf r \
       " "  PORT             \
       " "  RTSPLOGENABLED   \
-      " "  daynight         \
-      " "  daynightawb      \
-      " "  daynightinfo     \
-      " "  daynightlum      \
-      " "  ircut            \
-      " "  irled            \
-      " "  mdenabled        \
-      " "  mdsens           \
-      " "  nightdayawb      \
-      " "  nightdaylum      \
-      " "  osdalpha         \
-      " "  osdbackcolor     \
-      " "  osdedgecolor     \
-      " "  osdenabled       \
-      " "  osdfrontcolor    \
-      0    osdfontsize      \
-      0    osdx             \
-      0    osdy             \
-      1    osdfontsize      \
-      1    osdx             \
-      1    osdy             \
-      " "  videoday         \
-      " "  imageflip        \
       2    codec            \
       3    codec)
 
     PORT=$1          
     RTSPLOGENABLED=$2 
-    daynight=$3     
-    daynightawb=$4   
-    daynightinfo=$5   
-    daynightlum=$6    
-    ircut=$7        
-    irled=$8        
-    mdenabled=$9      
-    mdsens=$10       
-    nightdayawb=$11    
-    nightdaylum=$12   
-    osdalpha=$13   
-    osdbackcolor=$14 
-    osdedgecolor=$15 
-    osdenabled=$16  
-    osdfrontcolor=$17
-    osdfontsize0=$18  
-    osdx0=$19        
-    osdy0=$20        
-    osdfontsize1=$21
-    osdx1=$22
-    osdy1=$23
-    videoday=$24
-    imageflip=$25
-    audioCodec0=$26
-    audioCodec1=$27
-    osdtext="$(read_config rtspserver.conf osdtext)"
+    audioCodec0=$3
+    audioCodec1=$4
     USERNAME=$(read_config rtspserver.conf USERNAME)
     USERPASSWORD=$(read_config rtspserver.conf USERPASSWORD)
-
-    ## Update shared mem config.
-    /mnt/bin/setconf -k q -v "$CONFIGPATH/rtspserver.conf"
-    /mnt/bin/setconf -k n -v "$daynight"
-    /mnt/bin/setconf -k v -v "$videoday"
-    /mnt/bin/setconf -k f -v "$imageflip"
-    /mnt/bin/setconf -k r -v "$daynightawb"
-    /mnt/bin/setconf -k a -v "$daynightlum"
-    /mnt/bin/setconf -k b -v "$nightdayawb"
-    /mnt/bin/setconf -k d -v "$nightdaylum"
-    /mnt/bin/setconf -k e -v "$ircut"
-    /mnt/bin/setconf -k g -v "$irled"
-    /mnt/bin/setconf -k o -v "${osdtext}"
-    /mnt/bin/setconf -k c -v "$osdfrontcolor"
-    /mnt/bin/setconf -k s -v "$osdfontsize0"
-    /mnt/bin/setconf -k x -v "$osdx0"
-    /mnt/bin/setconf -k y -v "$osdy0"
-    /mnt/bin/setconf -k z -v "$osdfontsize1"
-    /mnt/bin/setconf -k w -v "$osdx1"
-    /mnt/bin/setconf -k t -v "$osdy1"
-    /mnt/bin/setconf -k h -v "$osdalpha"
-    /mnt/bin/setconf -k i -v "$osdbackcolor"
-    /mnt/bin/setconf -k j -v "$osdedgecolor"
-    /mnt/bin/setconf -k l -v "$osdenabled"
-    /mnt/bin/setconf -k m -v "$mdsens"
-    /mnt/bin/setconf -k p -v "$mdenabled"
 
     ## UserName and password
     if [ "$USERNAME" != "" ]; then

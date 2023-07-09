@@ -361,6 +361,15 @@ if [ -n "$F_cmd" ]; then
       restart_service_if_need /mnt/controlscripts/recording
     ;;
 
+    conf_motiondetect)
+      /mnt/bin/rwconf /mnt/config/rtspserver.conf w " " mdsens ${F_mdsens} 
+      /mnt/bin/setconf -k m -v "${F_mdsens}"
+      rewrite_config /mnt/config/motion.conf motion_trigger_led "${F_motionBlink}"
+
+      echo "Motion red led blink set to ${F_motionBlink}<BR>"
+      echo "Motion sensitivity set to ${F_mdsens}<BR>"
+    ;;
+
     conf_audioin)
       /mnt/bin/rwconf /mnt/config/rtspserver.conf w \
           " " samplerate "${F_samplerate}" \

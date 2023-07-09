@@ -257,6 +257,34 @@ $(document).ready(function() {
     event.preventDefault();
   });
 
+
+  $('#formMotionDetection').submit(function(event) {
+    var b = $('#mdsensSubmit');
+    b.toggleClass('is-loading');
+    b.prop('disabled', !b.prop('disabled'));
+    if ($('input[name=motionBlink]').prop('checked')) {
+        motionBlink = 'true';
+      } else {
+        motionBlink = 'false';
+      }
+    var formData = {
+      'motionBlink': motionBlink,
+      'mdsens': $('input[name=mdsens]').val()
+    };
+    $.ajax({
+      type: 'POST',
+      url: $('#formMotionDetection').attr('action'),
+      data: formData,
+      dataType: 'html',
+      encode: true
+    }).done(function(res) {
+      b.toggleClass('is-loading');
+      b.prop('disabled', !b.prop('disabled'));
+      showResult(res);
+    });
+    event.preventDefault();
+  });
+
   $('#formTimelapse').submit(function(event) {
     var b = $('#tlSubmit');
     b.toggleClass('is-loading');

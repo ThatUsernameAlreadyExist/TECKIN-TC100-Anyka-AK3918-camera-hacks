@@ -27,7 +27,8 @@ set -- $(/mnt/bin/rwconf /mnt/config/rtspserver.conf r " " osdfrontcolor " " osd
     " " nightdayawb " " nightdaylum " " daynightawb " " daynightlum " " osdenabled " " osdalpha \
     0 osdfontsize 1 osdfontsize 0 osdx 0 osdy 1 osdx 1 osdy \
     0 smartmode 0 smartgoplen 0 smartquality 0 smartstatic 0 maxkbps 0 targetkbps \
-    1 smartmode 1 smartgoplen 1 smartquality 1 smartstatic 1 maxkbps 1 targetkbps)
+    1 smartmode 1 smartgoplen 1 smartquality 1 smartstatic 1 maxkbps 1 targetkbps \
+    " " mdsens)
 
 osdfrontcolor=$1
 osdbackcolor=$2
@@ -83,8 +84,10 @@ smartquality1=$51
 smartstatic1=$52
 maxkbps1=$53
 targetkbps1=$54
+mdsens=$55
 
 TELNET_PORT=$(read_config telnetd.conf TELNET_PORT)
+motion_trigger_led=$(read_config motion.conf motion_trigger_led)
 
 mount|grep "/mmcblk"|grep "rw,">/dev/null
 
@@ -569,7 +572,7 @@ cat << EOF
                 <div class="field-body">
                     <div class="field">
                         <div class="control">
-                            <input class="input" id="smartquality0" name="smartquality0" type="number" size="3" min="1" max="100" size="12" value="$smartquality0" placeholder="100"/>
+                            <input class="input" id="smartquality0" name="smartquality0" type="number" size="3" min="1" max="100" value="$smartquality0" placeholder="100"/>
                         </div>
                     </div>
                 </div>
@@ -807,7 +810,7 @@ cat << EOF
                 <div class="field-body">
                     <div class="field">
                         <div class="control">
-                            <input class="input" id="smartquality1" name="smartquality1" type="number" size="3" min="1" max="100" size="12" value="$smartquality1" placeholder="100"/>
+                            <input class="input" id="smartquality1" name="smartquality1" type="number" size="3" min="1" max="100" value="$smartquality1" placeholder="100"/>
                         </div>
                     </div>
                 </div>
@@ -1030,13 +1033,7 @@ cat << EOF
     </header>
     <div class='card-content'>
     <form id="formRecording" action="cgi-bin/action.cgi?cmd=conf_recording" method="post">
-        <div class="field is-horizontal">
-          <div class="field">
-            <input class="switch" name="motion_act" id="motion_act" type="checkbox"
-            $(if [ $rec_motion_activated -eq 1 ]; then echo "checked"; fi)>
-            <label for="motion_act">Record only when motion detected</label>
-          </div>
-        </div>
+
         <div class="field is-horizontal">
             <div class="field-label is-normal">
                 <label class="label">Postrecord</label>
@@ -1050,6 +1047,7 @@ cat << EOF
                 </div>
             </div>
         </div>
+
         <div class="field is-horizontal">
             <div class="field-label is-normal">
                 <label class="label">Max file duration</label>
@@ -1063,6 +1061,7 @@ cat << EOF
                 </div>
             </div>
         </div>
+
         <div class="field is-horizontal">
             <div class="field-label is-normal">
                 <label class="label">Reserved free disk space</label>
@@ -1076,6 +1075,20 @@ cat << EOF
                 </div>
             </div>
         </div>
+
+        <div class="field is-horizontal">
+            <div class="field-label is-normal"/>
+            <div class="field-body">
+                <div class="field">
+                    <div class="control">
+                        <input class="switch" name="motion_act" id="motion_act" type="checkbox"
+                                    $(if [ $rec_motion_activated -eq 1 ]; then echo "checked"; fi)>
+                                    <label class="label" for="motion_act">Record only when motion detected</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="field is-horizontal">
             <div class="field-label is-normal">
             </div>
@@ -1443,6 +1456,52 @@ cat << EOF
     </div>
 </div>
 -->
+
+
+<!-- Motion detection -->
+<div class='card status_card'>
+    <header class='card-header'><p class='card-header-title'>Motion Detection</p></header>
+    <div class='card-content'>
+        <form id="formMotionDetection" action="cgi-bin/action.cgi?cmd=conf_motiondetect" method="post">
+        <div class="field is-horizontal">
+            <div class="field-label is-normal">
+                <label class="label">Sensitivity</label>
+            </div>
+            <div class="field-body">
+                <div class="field">
+                    <div class="control">
+                        <input class="input" id="mdsens" name="mdsens" type="number" size="3" min="1" max="100" value="$mdsens"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="field is-horizontal">
+            <div class="field-label is-normal"/>
+            <div class="field-body">
+                <div class="field">
+                    <div class="control">
+                        <input class="switch" name="motionBlink" id="motionBlink" type="checkbox" $(if [ "$motion_trigger_led" == "true" ]; then echo "checked"; fi) >
+                         <label class="label" for="motionBlink">Blink red led when motion detected</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="field is-horizontal">
+            <div class="field-label is-normal">
+            </div>
+            <div class="field-body">
+                <div class="field">
+                <div class="control">
+                    <input id="mdsensSubmit" class="button is-primary" type="submit" value="Set" />
+                </div>
+                </div>
+            </div>
+        </div>
+        </form>
+    </div>
+</div>
 
 <!-- Audio / Image -->
 <div class='card status_card'>
