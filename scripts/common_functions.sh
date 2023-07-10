@@ -80,10 +80,12 @@ red_led(){
 ir_led(){
   case "$1" in
   on)
-    echo 1 > /sys/user-gpio/ir-led
+    #echo 1 > /sys/user-gpio/ir-led
+    /mnt/bin/setconf -k g -v 1
     ;;
   off)
-    echo 0 > /sys/user-gpio/ir-led
+    #echo 0 > /sys/user-gpio/ir-led
+    /mnt/bin/setconf -k g -v 0
     ;;
   status)
     status=$(cat /sys/user-gpio/ir-led)
@@ -104,18 +106,20 @@ ir_led(){
 ir_cut(){
   case "$1" in
   on)
-    echo 1 > /sys/user-gpio/gpio-ircut_b
-    echo 0 > /sys/user-gpio/gpio-ircut_a
-    sleep 1
-    echo 0 > /sys/user-gpio/gpio-ircut_b
-    echo "1" > /var/run/ircut
+    #echo 1 > /sys/user-gpio/gpio-ircut_b
+    #echo 0 > /sys/user-gpio/gpio-ircut_a
+    #sleep 1
+    #echo 0 > /sys/user-gpio/gpio-ircut_b
+    #echo "1" > /var/run/ircut
+    /mnt/bin/setconf -k e -v 1
     ;;
   off)
-    echo 1 > /sys/user-gpio/gpio-ircut_a
-    echo 0 > /sys/user-gpio/gpio-ircut_b
-    sleep 1
-    echo 0 > /sys/user-gpio/gpio-ircut_a
-    echo "0" > /var/run/ircut
+    #echo 1 > /sys/user-gpio/gpio-ircut_a
+    #echo 0 > /sys/user-gpio/gpio-ircut_b
+    #sleep 1
+    #echo 0 > /sys/user-gpio/gpio-ircut_a
+    #echo "0" > /var/run/ircut
+    /mnt/bin/setconf -k e -v 0
     ;;
   status)
     status=$(cat /var/run/ircut)
