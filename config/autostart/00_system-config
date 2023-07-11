@@ -1,0 +1,98 @@
+#!/bin/sh
+export LD_LIBRARY_PATH='/mnt/lib/:/lib/:/usr/lib/'
+CONFIGPATH="/mnt/config"
+
+## Load some common functions:
+. /mnt/scripts/common_functions.sh
+
+install_config $CONFIGPATH/rtspserver.conf
+install_config $CONFIGPATH/motion.conf
+
+## Set the socket option in order to restart easily the server (socket in use)
+echo 1 > /proc/sys/net/ipv4/tcp_tw_recycle
+
+## Init status files
+echo 0 > /var/run/lum
+echo 0 > /var/run/awb
+echo 1 > /var/run/vday
+echo 1 > /var/run/ircut
+
+## Update shared mem config.
+IFS=" "
+set -- $(/mnt/bin/rwconf $CONFIGPATH/rtspserver.conf r \
+    " "  daynight         \
+    " "  daynightawb      \
+    " "  daynightinfo     \
+    " "  daynightlum      \
+    " "  ircut            \
+    " "  irled            \
+    " "  mdenabled        \
+    " "  mdsens           \
+    " "  nightdayawb      \
+    " "  nightdaylum      \
+    " "  osdalpha         \
+    " "  osdbackcolor     \
+    " "  osdedgecolor     \
+    " "  osdenabled       \
+    " "  osdfrontcolor    \
+    0    osdfontsize      \
+    0    osdx             \
+    0    osdy             \
+    1    osdfontsize      \
+    1    osdx             \
+    1    osdy             \
+    " "  videoday         \
+    " "  imageflip)
+
+daynight=$1     
+daynightawb=$2   
+daynightinfo=$3  
+daynightlum=$4    
+ircut=$5        
+irled=$6        
+mdenabled=$7      
+mdsens=$8       
+nightdayawb=$9    
+nightdaylum=$10  
+osdalpha=$11   
+osdbackcolor=$12 
+osdedgecolor=$13 
+osdenabled=$14  
+osdfrontcolor=$15
+osdfontsize0=$16  
+osdx0=$17      
+osdy0=$18        
+osdfontsize1=$19
+osdx1=$20
+osdy1=$21
+videoday=$22
+imageflip=$23
+
+osdtext="$(read_config rtspserver.conf osdtext)"
+
+/mnt/bin/setconf -k q -v "$CONFIGPATH/rtspserver.conf"
+/mnt/bin/setconf -k n -v "$daynight"
+/mnt/bin/setconf -k v -v "$videoday"
+/mnt/bin/setconf -k f -v "$imageflip"
+/mnt/bin/setconf -k r -v "$daynightawb"
+/mnt/bin/setconf -k a -v "$daynightlum"
+/mnt/bin/setconf -k b -v "$nightdayawb"
+/mnt/bin/setconf -k d -v "$nightdaylum"
+/mnt/bin/setconf -k e -v "$ircut"
+/mnt/bin/setconf -k g -v "$irled"
+/mnt/bin/setconf -k o -v "${osdtext}"
+/mnt/bin/setconf -k c -v "$osdfrontcolor"
+/mnt/bin/setconf -k s -v "$osdfontsize0"
+/mnt/bin/setconf -k x -v "$osdx0"
+/mnt/bin/setconf -k y -v "$osdy0"
+/mnt/bin/setconf -k z -v "$osdfontsize1"
+/mnt/bin/setconf -k w -v "$osdx1"
+/mnt/bin/setconf -k t -v "$osdy1"
+/mnt/bin/setconf -k h -v "$osdalpha"
+/mnt/bin/setconf -k i -v "$osdbackcolor"
+/mnt/bin/setconf -k j -v "$osdedgecolor"
+/mnt/bin/setconf -k l -v "$osdenabled"
+/mnt/bin/setconf -k m -v "$mdsens"
+/mnt/bin/setconf -k p -v "$mdenabled"
+
+
