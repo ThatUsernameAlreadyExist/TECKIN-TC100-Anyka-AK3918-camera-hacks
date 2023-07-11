@@ -1166,6 +1166,7 @@ cat << EOF
                     <div class="field">
                         <p class="control">
                                  <input class="input is-fullwidth" id="ndawb" name="ndawb" type="number" size="4" value="$nightdayawb"/>
+                                 <label class="labelAWB"/>
                         </p>
                     </div>
                 </div>
@@ -1179,10 +1180,14 @@ cat << EOF
                     <div class="field">
                         <p class="control">
                                  <input class="input is-fullwidth" id="ndlum" name="ndlum" type="number" size="4" value="$nightdaylum"/>
+                                 <label class="labelLum"/>
                         </p>
                     </div>
                 </div>
             </div>
+
+            </br>
+            When current AWB > 'Night-to-Day AWB' and current Lum < 'Night-to-Day Lum' then switch to DAY mode.
 
             <div class="is-divider"></div>
 
@@ -1194,6 +1199,7 @@ cat << EOF
                     <div class="field">
                         <p class="control">
                                  <input class="input is-fullwidth" id="dnawb" name="dnawb" type="number" size="4" value="$daynightawb"/>
+                                 <label class="labelAWB"/>
                         </p>
                     </div>
                 </div>
@@ -1207,10 +1213,15 @@ cat << EOF
                     <div class="field">
                         <p class="control">
                                  <input class="input is-fullwidth" id="dnlum" name="dnlum" type="number" size="4" value="$daynightlum"/>
+                                 <label class="labelLum"/>
                         </p>
                     </div>
                 </div>
             </div>
+            </br>
+            When current AWB < 'Day-to-Night AWB' and current Lum > 'Day-to-Night Lum' then switch to NIGHT mode.
+            <div class="is-divider"/>
+
 
             <div class="field is-horizontal">
                 <div class="field-label is-normal">

@@ -16,6 +16,12 @@ if [ -n "$F_cmd" ]; then
   hostname)
     echo $(hostname);
     ;;
+
+  lumawb)
+    echo $(cat /var/run/lum)
+    echo $(cat /var/run/awb)
+    ;;
+
   sysusage)
     cpu=$(get_current_cpu_usage)
     free=$(get_current_memory_usage)

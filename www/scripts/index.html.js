@@ -25,6 +25,33 @@ function scheduleRefreshSysUsage(interval) {
     timeoutJobs['refreshSysUsage'] = setTimeout(refreshSysUsage, interval);
 }
 
+function refreshAutoNightLumAwb() {
+    var ts = new Date().getTime();
+    $.get("cgi-bin/state.cgi", {cmd: "lumawb", uid: ts}, function(data){
+        lumAwb = data.split("\n");
+
+        $(".labelLum").each(function() {
+            $(this).text("Current: " + lumAwb[0]);
+        });
+
+        $(".labelAWB").each(function() {
+            $(this).text("Current: " + lumAwb[1]);
+        });
+
+      scheduleRefreshAutoNightLumAwb(4000);
+    });
+}
+
+function scheduleRefreshAutoNightLumAwb(interval) {
+    if (timeoutJobs['refreshAutoNightLumAwb'] != undefined) {
+        clearTimeout(timeoutJobs['refreshAutoNightLumAwb']);
+    }
+    if (interval > 0)
+    {
+        timeoutJobs['refreshAutoNightLumAwb'] = setTimeout(refreshAutoNightLumAwb, interval);
+    }
+}
+
 function syncSwitchesTimeout(millis) {
     if (timeoutJobs['syncSwitches'] != undefined) {
         clearTimeout(timeoutJobs['syncSwitches']);
@@ -94,13 +121,6 @@ $(document).ready(function () {
             window.location.href = e.data('target');
         }
     });
-    // Camera controls
-    $(".cam_button").click(function () {
-        var b = $(this);
-        $.get("cgi-bin/action.cgi?cmd=" + b.data('cmd')).done(function (data) {
-            setTimeout(refreshLiveImage, 500);
-        });
-    });
 
     $('#camcontrol_link').hover(function () {
         // for desktop
@@ -145,12 +165,35 @@ $(document).ready(function () {
         $(document.location.hash).click();
     }
 
+    $('.navbar-item').click(function () {
+        var id = $(this).attr("id");
+        if (id && !$(this).hasClass('has-dropdown'))
+        {
+            scheduleRefreshAutoNightLumAwb(id == "status" ? 2000 : 0);
+        }
+    });
+
     // Make liveview self refresh
     $("#liveview").attr("onload", "scheduleRefreshLiveImage(1000);");
-    
-    refreshSysUsage();
 
+    
+    fixMenuPadding();
+    refreshSysUsage();
 });
+
+$(window).on('resize', function() {
+    fixMenuPadding();
+});
+
+function fixMenuPadding()
+{
+    if ($(window).width() < 1023) {
+        $("#nav_menu").css({ "padding-bottom": "6rem" });
+    }
+    else {
+        $("#nav_menu").css({ "padding-bottom": "" });
+    }
+}
 
 // set theme cookie
 function setCookie(name, value) {
@@ -222,6 +265,8 @@ function cameraControlClick(control)
             });
         }
         e.prop('disabled', false);
+
+        syncSwitchesTimeout(5000);
     });
 }
 
