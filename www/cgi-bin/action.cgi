@@ -238,16 +238,11 @@ if [ -n "$F_cmd" ]; then
       /mnt/controlscripts/night-mode stop
     ;;
 
-    flip-on)
-      /mnt/bin/rwconf /mnt/config/rtspserver.conf w " " imageflip 1
-      /mnt/bin/setconf -k f -v 1
+    image-flip)
+      /mnt/bin/rwconf /mnt/config/rtspserver.conf w " " imageflip ${F_flipValue}
+      /mnt/bin/setconf -k f -v ${F_flipValue}
     ;;
 
-    flip-off)
-      /mnt/bin/rwconf /mnt/config/rtspserver.conf w " " imageflip 0
-      /mnt/bin/setconf -k f -v 0
-    ;;
-    
     rtsp-log-on)
       rewrite_config /mnt/config/rtspserver.conf RTSPLOGENABLED 1
       restart_service_if_need /mnt/controlscripts/rtsp-h26x

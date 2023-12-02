@@ -978,35 +978,39 @@ cat << EOF
     </div>
 </div>
 
-<!-- RTSP -->
+<!-- RTSP/Misc -->
 <div class='card status_card'>
-    <header class='card-header'><p class='card-header-title'>RTSP</p></header>
+    <header class='card-header'><p class='card-header-title'>RTSP/Misc</p>
+    </header>
     <div class='card-content'>
-        <div class="columns">
 
-        <!-- TODO: uncomment when implemented
-        <div class="column">
-        <br>
         <div class="field is-horizontal">
-          <div class="field">
-            <input class="switch" name="flip" id="flip" type="checkbox" $(if [ "$imageflip" -ne 0 > /dev/null 2>&1 ]; then echo "checked";  fi) >
-            <label for="flip">Image flip</label>
-          </div>
-         </div>
-        </div>
-        -->
-        
-        <div class="column">
-        <br>
-        <div class="field is-horizontal">
-          <div class="field">
-            <input class="switch" name="enable_rtsp_log" id="enable_rtsp_log" type="checkbox"
-            $(if [ "$RTSPLOGENABLED" -ne 0 > /dev/null 2>&1 ]; then echo "checked"; fi)>
-            <label for="enable_rtsp_log">Enable RTSP server log</label>
-          </div>
-        </div>
+            <div class="field-label is-normal">
+                <label class="label">Image flip</label>
+            </div>
+            <div class="field-body">
+                <div class="select is-fullwidth">
+                    <select name="imageFlip" id="imageFlip">
+                        <option value="0"  $(if [ "$imageflip" == "0" ]; then echo selected; fi)>Disabled</option>
+                        <option value="1"  $(if [ "$imageflip" == "1" ]; then echo selected; fi)>Flip</option>
+                        <option value="2"  $(if [ "$imageflip" == "2" ]; then echo selected; fi)>Mirror</option>
+                        <option value="3"  $(if [ "$imageflip" == "3" ]; then echo selected; fi)>Flip and Mirror</option>
+                    </select>
+                </div>
+            </div>
         </div>
 
+        <div class="field is-horizontal">
+            <div class="field-label is-normal"/>
+            <div class="field-body">
+                <div class="field">
+                    <div class="control">
+                        <input class="switch" name="enable_rtsp_log" id="enable_rtsp_log" type="checkbox"
+                                    $(if [ "$RTSPLOGENABLED" -ne 0 > /dev/null 2>&1 ]; then echo "checked"; fi)>
+                                    <label class="label" for="enable_rtsp_log">Enable RTSP server log</label>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>

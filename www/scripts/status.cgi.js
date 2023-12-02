@@ -364,17 +364,18 @@ $(document).ready(function() {
       event.preventDefault();
     });
 
-    $('#flip').change(function() {
-        if($(this).is(":checked")) {
-           // if checked
-           $.ajax({
-            'url': 'cgi-bin/action.cgi?cmd=flip-on',
-           })
-        }  else {
-            $.ajax({
-                'url': 'cgi-bin/action.cgi?cmd=flip-off',
-            })
-        }
+    $('#imageFlip').change(function() {
+      var formData = {
+        'flipValue': $('select[name=imageFlip]').val(),
+      };
+
+      $.ajax({
+        type: 'POST',
+        url: 'cgi-bin/action.cgi?cmd=image-flip',
+        data: formData,
+        dataType: 'html',
+        encode: true
+      })
     });
     
     $('#enable_rtsp_log').change(function() {
