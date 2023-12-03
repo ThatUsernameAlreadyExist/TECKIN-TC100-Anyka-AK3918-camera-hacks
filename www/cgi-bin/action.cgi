@@ -275,11 +275,14 @@ if [ -n "$F_cmd" ]; then
       width1="${wh1%x*}"
       height1="${wh1#*x}"
 
+      username=$(printf '%b' "${F_videouser//%/\\x}")
+      userpassword=$(printf '%b' "${F_videopassword//%/\\x}")
+
       echo "Video resolution set to $wh0 and $wh1<br/>"
 
       /mnt/bin/rwconf /mnt/config/rtspserver.conf w \
-          " " USERNAME "${F_videouser}" \
-          " " USERPASSWORD "${F_videopassword}" \
+          " " USERNAME "${username}" \
+          " " USERPASSWORD "${userpassword}" \
           " " PORT "${F_videoport}" \
           0 bps          "${F_brbitrate0}" \
           0 brmode       "${F_video_format0}" \
